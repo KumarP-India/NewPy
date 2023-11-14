@@ -59,25 +59,25 @@ class MoreScopesThanIndex(Exception):
 
 def Report(message:str, level:str) -> None:
     """
-    # This function logs the message with given level of importance
+    - This function logs the message with given level of importance
 
-    # Code is sorted in aceding order of importance
+    - Code is sorted in aceding order of importance
 
     Args:
         message (str): The string that needs to be added to the log file
         level (str): level as decribed below
         
-    # Levels:
+    - Levels:
 
-        Debug: This is for messages that are intended to be stored for research purposes of some part of code. It is not for error logging.
+        - Debug: This is for messages that are intended to be stored for research purposes of some part of code. It is not for error logging.
 
-        Info: It is general log message that is not negative - meaning not stored with unexpected result or event happens.
+        - Info: It is general log message that is not negative - meaning not stored with unexpected result or event happens.
 
-        Warning: Use to warn bad event or result or use but is not error or exception or unexpected resulyt or event
+        - Warning: Use to warn bad event or result or use but is not error or exception or unexpected resulyt or event
 
-        Error: All errors inwhich rescue actions are available. For example upon unsucessful addtion of variable GarbageHandler() is available to rescue 
+        - Error: All errors inwhich rescue actions are available. For example upon unsucessful addtion of variable GarbageHandler() is available to rescue 
 
-        Critical: Severe Error ofwhich even rescue is not available or that crashes fundamental programs
+        - Critical: Severe Error ofwhich even rescue is not available or that crashes fundamental programs
     
     """
     
@@ -108,3 +108,19 @@ def Report(message:str, level:str) -> None:
             logger.critical(f"Wrong level of log event giving -> {level} with message = {message}")
 
 
+def _GetFullClassName(obj):
+    """
+    This is a helper to get the full name of object. For the context here, it gets the name of error with the external lib, if there is otherwise same.
+
+    Args:
+        obj (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    
+    module = obj.__class__.__module__
+    
+    if module is None or module == str.__class__.__module__: return str(obj.__class__.__name__)
+    
+    return str(module + '.' + obj.__class__.__name__)
