@@ -2,6 +2,14 @@
 # This loads the the TODO:lanuage file.
 # Then selects codeblock or line and runs them in parell node
 # To preserve the position cursor points to the code and gets updated via sibling nodes
+
+Raises:
+    errorManager.MoreScopesThanIndex: Refer to errorManager
+    errorManager.MoreScopesIndex: Refer to errorManager
+
+Returns:
+    _type_: TODO: RETURN OR INTERFACE FUNCTION/CLASS
+        
 """
 
 import DataType
@@ -12,7 +20,7 @@ import errorManager
 
 
 class Variable:
-    """
+    """    
     It is class where programs Variables are hold
     """
 
@@ -50,10 +58,20 @@ class Variable:
 
         self.scopeCounter = 0
 
-    def ScopeAdder(self, name) -> bool:
+    def ScopeAdder(self, name:str) -> bool:
 
         """
         Adds new element to self.scope representing new code block scope
+        
+        Args:
+            name (str): It is the name of Scope by User that is requested to be added.
+
+        Raises:
+            errorManager.MoreScopesThanIndex: Refer to errorManager
+            errorManager.MoreScopesIndex: Refer to errorManager
+
+        Returns:
+            bool: Its output describes wether the function was able to add it sucessfuly or not.
         """
 
         try: 
@@ -95,12 +113,20 @@ class Variable:
         
         return True
 
-    def GarbageHandler(self, mode):
+    def GarbageHandler(self, mode:str):
         """
         This is Executing function for all actions related to deletion and maintainance of variables.
+
+
+        Args:
+            mode (str): described below
+            
+            
         It consits of multiple modes, each performing required task.
-            unsucessful addition of Scope: This reduces the ScopeCounter drops the latest scope
-            Uknown error in addition of Scope: This is situation when unexpected error happened and it performs same operation as unsucessful addition of Scope
+            
+            - unsucessful addition of Scope: This reduces the ScopeCounter drops the latest scope
+            
+            - Uknown error in addition of Scope: This is situation when unexpected error happened and it performs same operation as unsucessful addition of Scope
 
         """
 

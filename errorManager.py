@@ -13,13 +13,21 @@ logger = logging.getLogger()
 class MoreScopesIndex(Exception): 
     """
     This Exceptions is raised when the code tried to add new scope but the addtions didn't increased the number of scopes
+
+    Args:
+        Exception (type: Not Valid): Not Valid
     """
 
-    def __init__(self, ScopeName) -> None:
+    def __init__(self, ScopeName:str) -> None:
+        """
+        Refer parent class doc string
+    
+        Args:
+            ScopeName (str): name of scope by user that was unsucessful in addition.
         
-        self.name = ScopeName
+        """
         
-        message=f"{self.ScopeName} is in the Scope Archive but not in scope"
+        message=f"{ScopeName} is in the Scope Archive but not in scope"
 
         Report(message, 'Error')
         
@@ -28,25 +36,37 @@ class MoreScopesIndex(Exception):
 class MoreScopesThanIndex(Exception):
     """
     This Exception is raised when the code added new scope but Scope Index Archive didn't store
+
+    Args:
+        Exception (type: Not Valid): Not Valid
     """
 
-    def __init__(self, ScopeName) -> None:
+    def __init__(self, ScopeName:str) -> None:
+        """
+        Refer parent class doc string
+    
+        Args:
+            ScopeName (str): name of scope by user that was unsucessful in addition.
         
-        self.name = ScopeName
+        """
         
-        message=f"{self.ScopeName} is in scope but not in the Scope Archives"
+        message=f"{ScopeName} is in scope but not in the Scope Archives"
 
         Report(message, 'Error')
         
         super().__init__(message)   
 
 
-def Report(message, level) -> None:
+def Report(message:str, level:str) -> None:
     """
     # This function logs the message with given level of importance
 
     # Code is sorted in aceding order of importance
 
+    Args:
+        message (str): The string that needs to be added to the log file
+        level (str): level as decribed below
+        
     # Levels:
 
         Debug: This is for messages that are intended to be stored for research purposes of some part of code. It is not for error logging.
@@ -58,6 +78,7 @@ def Report(message, level) -> None:
         Error: All errors inwhich rescue actions are available. For example upon unsucessful addtion of variable GarbageHandler() is available to rescue 
 
         Critical: Severe Error ofwhich even rescue is not available or that crashes fundamental programs
+    
     """
     
     match level:
@@ -85,8 +106,5 @@ def Report(message, level) -> None:
         case other:
 
             logger.critical(f"Wrong level of log event giving -> {level} with message = {message}")
-
-
-
 
 
