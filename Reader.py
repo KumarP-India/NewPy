@@ -25,8 +25,7 @@ class Variable:
 
         # 0: Built in values of both Python & TODO:lanuage
         # 1: Variable outside any scope ie. Global
-        # 2: Dict of code block names with unique int ID (2+)
-        # for 2+ scope contains 2 dict:
+        # for 1+ scope contains 3 dict:
             # enclosed: Enclosed variables
             # local: inside that code block
             # nest: empty by default; have id of nested codeblocks
@@ -47,7 +46,7 @@ class Variable:
             }
         }
 
-        self.scopeArchive = {} # This holds the 
+        self.scopeArchive = {} # This holds the int id and user scope name
 
         self.scopeCounter = 0
 
@@ -74,9 +73,10 @@ class Variable:
             self.scopeArchive[self.scopeCounter + 2] = name # Adding to Scope Archive with key Scope int val and value the user name of scope
 
             # Checks if len of Scopes is not equal to prev scopes + 2 default + 1 new scope. And if true raises MoreScopesIndex Error
-            if not len(self.scopeArchive) == (self.scopeCounter + 3): raise errorManager.MoreScopesIndex()
+            if not len(self.scopeArchive) == (self.scopeCounter + 1): raise errorManager.MoreScopesThanIndex()
+            if not len(self.scope) == len(self.scopeArchive + 2): raise errorManager.MoreScopesIndex()
 
-        except errorManager.MoreScopesIndex:
+        except (errorManager.MoreScopesIndex, errorManager.MoreScopesThanIndex):
             
             self.GarbageHandler(mode='unsucessful addition of Scope') # TODO: Creation of GarbageHandler with mode <unsucessful addition of Scope>
 
@@ -95,3 +95,23 @@ class Variable:
         
         return True
 
+    def GarbageHandler(self, mode):
+        """
+        This is Executing function for all actions related to deletion and maintainance of variables.
+        It consits of multiple modes, each performing required task.
+            unsucessful addition of Scope: This reduces the ScopeCounter drops the latest scope
+            Uknown error in addition of Scope: This is situation when unexpected error happened and it performs same operation as unsucessful addition of Scope
+
+        """
+
+        match mode:
+
+            case 'unsucessful addition of Scope': 
+
+                if len(self.scopeArchive) > len(self.scopeCounter)
+
+            case 'Uknown error in addition of Scope': pass
+
+            case other:
+
+                pass

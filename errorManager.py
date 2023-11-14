@@ -25,6 +25,21 @@ class MoreScopesIndex(Exception):
         
         super().__init__(message)
 
+class MoreScopesThanIndex(Exception):
+    """
+    This Exception is raised when the code added new scope but Scope Index Archive didn't store
+    """
+
+    def __init__(self, ScopeName) -> None:
+        
+        self.name = ScopeName
+        
+        message=f"{self.ScopeName} is in scope but not in the Scope Archives"
+
+        Report(message, 'Error')
+        
+        super().__init__(message)   
+
 
 def Report(message, level) -> None:
     """
