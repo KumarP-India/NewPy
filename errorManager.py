@@ -27,7 +27,7 @@ class MoreScopesIndex(Exception):
         
         """
         
-        message=f"{ScopeName} is in the Scope Archive but not in scope"
+        message = f"{ScopeName} is in the Scope Archive but not in scope"
 
         Report(message, 'Error')
         
@@ -50,7 +50,7 @@ class MoreScopesThanIndex(Exception):
         
         """
         
-        message=f"{ScopeName} is in scope but not in the Scope Archives"
+        message = f"{ScopeName} is in scope but not in the Scope Archives"
 
         Report(message, 'Error')
         

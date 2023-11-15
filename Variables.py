@@ -36,7 +36,7 @@ class Variable:
         # for 1+ scope contains 3 dict:
             # enclosed: Enclosed variables
             # local: inside that code block
-            # nest: empty by default; have id of nested codeblocks
+            # parent: empty by default; have id of parent codeblocks
 
         # Each dict having 2 dict:
             # key: To hold unique int ID to user variable name
@@ -58,7 +58,7 @@ class Variable:
 
         self.scopeCounter = 0
 
-    def ScopeAdder(self, name:str) -> bool:
+    def ScopeAdder(self, name:str, parent=None) -> bool:
 
         """
         Adds new element to self.scope representing new code block scope
@@ -85,10 +85,10 @@ class Variable:
                     'key': {},
                     'val': {}
                 },
-                'nest': {}
+                'parent': parent
             }
 
-            self.scopeArchive[self.scopeCounter + 2] = name # Adding to Scope Archive with key Scope int val and value the user name of scope
+            self.scopeArchive[name] = (self.scopeCounter + 2) # Adding to Scope Archive with value Scope int val and key the user name of scope
 
             # Checks if len of Scopes is not equal to prev scopes + 2 default + 1 new scope. And if true raises MoreScopesIndex Error
             if not len(self.scopeArchive) == (self.scopeCounter + 1): raise errorManager.MoreScopesThanIndex(name)
@@ -111,6 +111,47 @@ class Variable:
         
         return True
 
+    def VariableHandler(self, scopeName:str, location:str, variableName:str, value:any) -> bool:
+
+        newVariable = False
+
+        if scopeName not in self.scopeArchive.values(): 
+            
+            if not self.ScopeAdder(scopeName): return False
+
+            newVariable = True
+
+        try:
+
+            if not newVariable and variableName not in self.scope[self.scopeArchive[scopeName]] [location] [keys].keys():
+            
+                match location:
+
+                    case 'enclosed':
+
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName] = len(self.scopeArchive[scopeName]['key'])
+
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [len(self.scopeArchive[scopeName]['key'])] = value
+
+                    case 'local': # TODO: Write other case
+
+                        self.scope[self.scopeArchive[scopeName]] ['local'] ['key'] [variableName] = len(self.scopeArchive[scopeName]['key'])
+
+                        self.scope[self.scopeArchive[scopeName]] ['local'] ['value'] [len(self.scopeArchive[scopeName]['key'])] = value
+
+            else:
+
+                match location:
+
+                    case 'enclosed':
+
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName]] = value
+
+                    case 'local': # TODO: Write other case
+
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName]] = value
+
+        except: # TODO: Write errors and custom errors
 
     def __GarbageHandler(self, mode:str, extraArgs=None) -> None:
         """
