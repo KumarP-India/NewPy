@@ -10,6 +10,8 @@ Returns:
         
 """
 
+from typing import Any
+
 import DataType
 from System import variables as sysVar, SystemShutdown # type:ignore :TODO: Creation of System.py
 import errorManager
@@ -111,7 +113,7 @@ class Variable:
         
         return True
 
-    def VariableHandler(self, scopeName:str, location:str, variableName:str, value:any) -> bool:
+    def VariableHandler(self, scopeName:str, location:str, variableName:str, value:Any) -> bool:
 
         newVariable = False
 
@@ -129,29 +131,41 @@ class Variable:
 
                     case 'enclosed':
 
-                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName] = len(self.scopeArchive[scopeName]['key'])
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName] = len(self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'])
 
-                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [len(self.scopeArchive[scopeName]['key'])] = value
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [len(self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key']) - 1] = value
 
                     case 'local': # TODO: Write other case
 
-                        self.scope[self.scopeArchive[scopeName]] ['local'] ['key'] [variableName] = len(self.scopeArchive[scopeName]['key'])
+                        self.scope[self.scopeArchive[scopeName]] ['local'] ['key'] [variableName] = len(self.scope[self.scopeArchive[scopeName]] ['local'] ['key'])
 
-                        self.scope[self.scopeArchive[scopeName]] ['local'] ['value'] [len(self.scopeArchive[scopeName]['key'])] = value
+                        self.scope[self.scopeArchive[scopeName]] ['local'] ['value'] [len(self.scope[self.scopeArchive[scopeName]] ['local'] ['key']) - 1] = value
 
             else:
 
                 match location:
 
                     case 'enclosed':
+                        
+                        iid = self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName]
 
-                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName]] = value
+                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [iid] = value
 
                     case 'local': # TODO: Write other case
 
-                        self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['value'] [self.scope[self.scopeArchive[scopeName]] ['enclosed'] ['key'] [variableName]] = value
+                        iid = self.scope[self.scopeArchive[scopeName]] ['local'] ['key'] [variableName]
 
-        except: # TODO: Write errors and custom errors
+                        self.scope[self.scopeArchive[scopeName]] ['local'] ['value'] [iid] = value
+
+        except Exception as e: 
+            
+            iid = self.scope[self.scopeArchive[scopeName]] [location] ['key'] [variableName]
+            
+            val = self.scope[self.scopeArchive[scopeName]] [location] ['value'] [iid]
+            
+            self.__GarbageHandler(mode='Uknown error in changing the value of variable', extraArgs=[errorManager._GetFullClassName(e), scopeName, location, variableName, value, val])
+            
+            
 
     def __GarbageHandler(self, mode:str, extraArgs=None) -> None:
         """
@@ -237,6 +251,39 @@ class Variable:
                     errorManager.Report(f"During the addition of Scope {extraArgs[1]} - {extraArgs[0]} Exception happened", "Critical")
                 
                 SystemShutdown()
+                
+            
+            case 'Uknown error in changing the value of variable':
+                
+                # Create this as copy of Unknow error in addition of Scope but as changing the value and variables. Also use all the extraArgs in the message
+                
+                if extraArgs is None or not isinstance(extraArgs, list):
+                    
+                    errorManager.Report(f"Caller didn't provided which error happend and in changing the value of which variable in which Scope", "Critical")
+                                        
+                elif not len(extraArgs) == 6: 
+                    
+                    errorManager.Report(f"Caller didn't provided which error happend and in changing the value of which variable in which Scope", "Critical")
+                                    
+                elif extraArgs[5] == extraArgs[4]:
+                    
+                    errorManager.Report(f"During the changing the value of variable {extraArgs[3]} in {extraArgs[2]} inside {extraArgs[1]} - {extraArgs[0]} Exception happened; The stored value is: {extraArgs[5]} and required value was: {extraArgs[4]}", "Error")
+                
+                    return
+                
+                else:
+                    
+                    errorManager.Report(f"During the changing the value of variable {extraArgs[3]} in {extraArgs[2]} inside {extraArgs[1]} - {extraArgs[0]} Exception happened; The stored value is: {extraArgs[5]} and required value was: {extraArgs[4]}", "Critical")
+                
+                    SystemShutdown()
+                
+#   # errorManager._GetFullClassName(e), 
+    # scopeName, l
+    # ocation, 
+    # variableName,
+    # value, 
+    # val])
+
                 
                 
 
