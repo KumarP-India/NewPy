@@ -11,8 +11,7 @@ Returns:
         
 """
 
-import re
-from typing import Any
+from typing import Any, Union
 
 import DataType
 from System import variables as sysVar, SystemShutdown # type:ignore :TODO: Creation of System.py
@@ -42,9 +41,10 @@ class Variable:
             # local: inside that code block
             # parent: empty by default; have id of parent codeblocks
 
-        # Each dict having 2 dict:
+        # Each dict having 3 dict:
             # key: To hold unique int ID to user variable name
             # val: To hold unique int ID's value
+            # age: To hold unique int ID's age ie. about of minor garbage collection it survived
 
         self.scope = {
             0: {
@@ -54,7 +54,8 @@ class Variable:
             
             1: {
                 'key': {},
-                'val': {}
+                'val': {},
+                'age': {}
             }
         }
 
@@ -63,8 +64,7 @@ class Variable:
         self.scopeCounter = 0
 
 
-    def ScopeAdder(self, name:str, parent=None) -> bool:
-
+    def ScopeAdder(self, name:str, parent=None) -> Union[bool, int]:
         """
         This function is used to add new scope in the scope dict and scopeArchive
         
@@ -82,8 +82,12 @@ class Variable:
             
         Returns:
             bool: Its output describes wether the function was able to add it sucessfuly or not.
+            or
+            int: It returns the id of newly added scope.
         """
-
+        # for all return True replace it with the value of Scope int id
+        newScopeID = False
+        
         try: 
             
             if isinstance(parent, int) and parent is not None: 
@@ -95,16 +99,20 @@ class Variable:
             self.scope[self.scopeCounter + 2] = {
                 'enclosed': {
                     'key': {},
-                    'val': {}
+                    'val': {}, 
+                    'age': {}
                 },
                 'local': {
                     'key': {},
-                    'val': {}
+                    'val': {},
+                    'age': {}
                 },
                 'parent': parent
             }
+            
+            newScopeID = self.scopeCounter + 2
 
-            self.scopeArchive[name] = (self.scopeCounter + 2) # Adding to Scope Archive with value Scope int val and key the user name of scope
+            self.scopeArchive[name] = (newScopeID) # Adding to Scope Archive with value Scope int val and key the user name of scope
 
             # Checks if len of Scope Archive is not equal to previous scope Counter + 1. And if true raises MoreScopesThanIndex Error
             if not len(self.scopeArchive) == (self.scopeCounter + 1): raise VariableErrorManager.MoreScopesThanIndex(name)
@@ -136,7 +144,8 @@ class Variable:
         
         self.scopeCounter += 1
         
-        return True
+        return newScopeID
+
 
     def VariableHandler(self, scopeName:str, location:str, variableName:str, value:Any) -> bool:
         """
@@ -163,13 +172,26 @@ class Variable:
 
         newVariable = False # This is used to track if variable is new or not
         
+        # TODO: If they tried to change the variable in 0 scope that is System Variable the  create Acess deinied type erroer
+        
         try:
         
             if scopeName == 'Global':
                 
-                # 1 is the id of Global scope
-                self.scope[1] ['key'] [variableName] = len(self.scope[1] ['key'])
-                self.scope[1] ['val'] [len(self.scope[1] ['key']) - 1] = value
+                # 1 is the scope ID of global
+                
+                # Check if the variable provied is in the Global scope or not and if not then add it to Global scope else upadte value of variable, please
+                if variableName not in self.scope[1] ['key'].keys():
+                        
+                        self.scope[1] ['key'] [variableName] = len(self.scope[1] ['key'])
+                        self.scope[1] ['val'] [len(self.scope[1] ['key']) - 1] = value
+                        self.scope[1] ['age'] [len(self.scope[1] ['key']) - 1] = 0
+                        
+                        return True
+                
+                intIDofVar = self.scope[1] ['key'] [variableName]
+                
+                self.scope[1] ['val'] [intIDofVar] = value
                 
                 return True
                 
@@ -178,23 +200,31 @@ class Variable:
             
             if scopeName not in self.scopeArchive.values(): 
                 
-                if not self.ScopeAdder(scopeName): return False # This is to check if there was an error in adding the scope and it was handled by GarbageHandler
+                # add the scope and get the output ie. either id of scope or False
+                scopeID = self.ScopeAdder(scopeName)
+                
+                if not scopeID: return False # This is to check if there was an error in adding the scope and it was handled by GarbageHandler
 
                 newVariable = True
-
+                
+            # use same scopeID to get the scope int id from scopeArchive if scope exsits, please
+            scopeID = self.scopeArchive[scopeName]
+            
             if not newVariable:
                 
-                if variableName not in self.scope[self.scopeArchive[scopeName]] [location] ['key'].keys():
+                if variableName not in self.scope[scopeID] [location] ['key'].keys():
                 
-                    self.scope[self.scopeArchive[scopeName]] [location] ['key'] [variableName] = len(self.scope[self.scopeArchive[scopeName]] [location] ['key'])
+                    self.scope[scopeID] [location] ['key'] [variableName] = len(self.scope[scopeID] [location] ['key'])
 
-                    self.scope[self.scopeArchive[scopeName]] [location] ['value'] [len(self.scope[self.scopeArchive[scopeName]] [location] ['key']) - 1] = value
+                    self.scope[scopeID] [location] ['value'] [len(self.scope[scopeID] [location] ['key']) - 1] = value
+                    
+                    self.scope[scopeID] [location] ['age'] [len(self.scope[scopeID] [location] ['key']) - 1] = 0
 
             else:
                         
-                intIDofVar = self.scope[self.scopeArchive[scopeName]] [location] ['key'] [variableName]
+                intIDofVar = self.scope[scopeID] [location] ['key'] [variableName]
 
-                self.scope[self.scopeArchive[scopeName]] [location] ['value'] [intIDofVar] = value
+                self.scope[scopeID] [location] ['value'] [intIDofVar] = value
                 
                 
         except VariableErrorManager.InvalidVariableLocation as e: 
@@ -205,15 +235,19 @@ class Variable:
 
         except Exception as e: 
             
-            intIDofVar = self.scope[self.scopeArchive[scopeName]] [location] ['key'] [variableName]
+            scopeID = self.scopeArchive[scopeName]
             
-            val = self.scope[self.scopeArchive[scopeName]] [location] ['value'] [intIDofVar]
+            intIDofVar = self.scope[scopeID] [location] ['key'] [variableName]
+            
+            val = self.scope[scopeID] [location] ['value'] [intIDofVar]
             
             self.__GarbageHandler(mode='Uknown error in changing the value of variable', extraArgs=[VariableErrorManager._GetFullClassName(e), scopeName, location, variableName, value, val])
             
             return False
             
         return True  
+
+    
 
     def __GarbageHandler(self, mode:str, extraArgs=None) -> None:
         """
@@ -334,5 +368,17 @@ class Variable:
                 
 
             case other:
+                
+                # Use Report function and report it as Critical error and call to shutdown
+                
+                VariableErrorManager.Report(f"GarbageHandler was called with unknown mode: {other}", "Critical")
+                
+                SystemShutdown()
 
-                ... # TODO: Add this mode after creation of all grabage
+                
+                
+class GarbageMan:
+    
+    pass #TODO: Create this class and its functions to act as garbage collector for variables
+
+'''refer to ./Garbagediscusion.txt'''
