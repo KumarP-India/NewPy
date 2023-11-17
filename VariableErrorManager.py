@@ -48,8 +48,7 @@ class MoreScopesIndex(Exception):
         
         message = f"{ScopeName} is in the Scope Archive but not in scope"
 
-        Report(message, 'Error')
-        
+        Report(message, 'Error')        
 
 class MoreScopesThanIndex(Exception):
     """
@@ -88,7 +87,40 @@ class MoreScopesThanIndex(Exception):
         message = f"{ScopeName} is in scope but not in the Scope Archives"
 
         Report(message, 'Error')
-        
+
+class SystemVariableAcessed(Exception):
+    """
+    This Exception is raised when the code tried to be add/update variable with the System Variable scope, which is illegal
+
+    Args:
+        Exception (type: Not Valid): Not Valid
+    """
+
+    def __init__(self) -> None:
+        """
+        Refer parent class doc string
+
+        Returns: None
+        """
+
+        message = f"System Variable scope was given for creation of new variable or update of variable value."
+
+        Report(message, 'Critical')
+
+        super().__init__(message) 
+
+    def recorder(self) -> None:
+        """
+        This function is called when the exception steps are required and is cauhgt by the except block
+
+        Returns: None
+        """
+
+        message = f"System Variable scope was given for creation of new variable or update of variable value."
+
+        Report(message, 'Critical')
+
+        SystemShutdown()
         
 class InvalidVariableLocation(Exception):
     """
@@ -98,7 +130,7 @@ class InvalidVariableLocation(Exception):
         Exception (type: Not Valid): Not Valid
     """
     
-    def __init__(self, variableName:str, scopeName:str, location:str, value:Any):
+    def __init__(self, variableName:str, scopeName:str, location:str, value:Any) -> None:
         """
         Refer parent class doc string
 
@@ -146,7 +178,7 @@ class InvalidParentScope(Exception):
         Exception (type: Not Valid): Not Valid
     """
     
-    def __init__(self, scopeName:str, parentScopeName:Any):
+    def __init__(self, scopeName:str, parentScopeName:Any) -> None:
         """
         Refer parent class doc string
 
@@ -189,7 +221,7 @@ class ParentScopeNotFound(Exception):
         Exception (type: Not Valid): Not Valid
     """
     
-    def __init__(self, scopeName:str, parentScopeName:Any):
+    def __init__(self, scopeName:str, parentScopeName:Any) -> None:
         """
         Refer parent class doc string
 
@@ -276,7 +308,7 @@ def Report(message:str, level:str) -> None:
             logger.critical(f"Wrong level of log event giving -> {level} with message = {message}")
 
 
-def _GetFullClassName(obj):
+def _GetFullClassName(obj) -> str:
     """
     This is a helper to get the full name of object. For the context here, it gets the name of error with the external lib, if there is otherwise same.
 

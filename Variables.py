@@ -172,7 +172,8 @@ class Variable:
 
         newVariable = False # This is used to track if variable is new or not
         
-        # TODO: If they tried to change the variable in 0 scope that is System Variable the  create Acess deinied type erroer
+        if scopeName == "1":
+            raise VariableErrorManager.SystemVariableAcessed()
         
         try:
         
@@ -189,9 +190,9 @@ class Variable:
                         
                         return True
                 
-                intIDofVar = self.scope[1] ['key'] [variableName]
+                intIDofVariable = self.scope[1] ['key'] [variableName] # Int ID of Variable
                 
-                self.scope[1] ['val'] [intIDofVar] = value
+                self.scope[1] ['val'] [intIDofVariable] = value
                 
                 return True
                 
@@ -222,11 +223,16 @@ class Variable:
 
             else:
                         
-                intIDofVar = self.scope[scopeID] [location] ['key'] [variableName]
+                intIDofVariable = self.scope[scopeID] [location] ['key'] [variableName] # Int ID of Variable
 
-                self.scope[scopeID] [location] ['value'] [intIDofVar] = value
+                self.scope[scopeID] [location] ['value'] [intIDofVariable] = value
                 
                 
+        except VariableErrorManager.SystemVariableAcessed as e: 
+            
+            # call recoder funtion
+            e.recorder()
+        
         except VariableErrorManager.InvalidVariableLocation as e: 
             
             # call recoder funtion
@@ -237,9 +243,9 @@ class Variable:
             
             scopeID = self.scopeArchive[scopeName]
             
-            intIDofVar = self.scope[scopeID] [location] ['key'] [variableName]
+            intIDofVariable = self.scope[scopeID] [location] ['key'] [variableName] # Int ID of Variable
             
-            val = self.scope[scopeID] [location] ['value'] [intIDofVar]
+            val = self.scope[scopeID] [location] ['value'] [intIDofVariable]
             
             self.__GarbageHandler(mode='Uknown error in changing the value of variable', extraArgs=[VariableErrorManager._GetFullClassName(e), scopeName, location, variableName, value, val])
             
@@ -379,6 +385,43 @@ class Variable:
                 
 class GarbageMan:
     
-    pass #TODO: Create this class and its functions to act as garbage collector for variables
+    #TODO: Create this class and its functions to act as garbage collector for variables
+    # TODO: Create doc string for this class
 
-'''refer to ./Garbagediscusion.txt'''
+    """refer to ./Garbagediscusion.txt"""
+
+    def __init__(self, variableObject: Variable) -> None:
+        """
+        - Initilizes the list <minor> to hold all the variables which are young or new for garbage collection.
+        - Initilizes the list <neutral> to hold all the variables which survived minor garbage collection.
+        - Initilizes the list <major> to hold all the variables which survived major neutral collection.
+
+        Args:
+            variableHandlerInterface (Variable Class): TO handle Variables in the user file.
+            
+        Returns: None
+        """
+
+        self.minor = []
+
+        self.neutral = []
+
+        self.major = []
+
+        self.variableWoman = variableObject.variableHandlerInterface # type: ignore #TODO: Rename it if needed
+
+    def CollectGarbage(self) -> None:
+        """
+        - This function implements the logic of garbage collection.
+        TODO: Add logic
+        
+        Returns: None
+        """
+
+        self.minor = [item for item in self.minor if item is not None]
+
+        for i in self.minor:
+
+            self.variableWoman.AgePointerInterface(work='increase age', variable=i) # TODO: Create this interface
+            
+            # TODO: finish this with some logic about clearing.
