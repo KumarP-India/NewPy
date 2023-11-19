@@ -11,7 +11,7 @@ Returns:
         
 """
 
-from typing import Any, Union
+from typing import Any, List, Union
 
 import DataType
 from System import variables as sysVar, SystemShutdown # type:ignore :TODO: Creation of System.py
@@ -253,8 +253,6 @@ class Variable:
             
         return True  
 
-    
-
     def __GarbageHandler(self, mode:str, extraArgs=None) -> None:
         """
         - This is Executing function for all actions related to deletion and maintainance of variables.
@@ -381,7 +379,37 @@ class Variable:
                 
                 SystemShutdown()
 
+          
+          
+    # Interfaces for VariableHandler
+    
+    def AgePointerInterface(self, work:str, variable: List[Union[int, str]]):
+        # variable = [varID, location, scope id or parent id, age]
+        # check if variable has elements int, str, int, int
+        if not isinstance(variable, list) or \
+            not len(variable) == 4 or \
+                not isinstance(variable[0], int) or \
+                    not isinstance(variable[1], str) or \
+                        not isinstance(variable[2], int) or \
+                            not isinstance(variable[3], int): return
+                                
+                                # TODO: Raise error of wrong variable format
+                                                       
+        # TODO: create other errors
+        match work:
+            
+            case 'increase age':
                 
+                while self.scope[variable[2]] ['parent']:
+                    
+                    variable[2] = self.scope[variable[2]] ['parent']
+                    
+                # I need to increase self.scope[variable[2]] [variable[1]] ['age'] [variable[0]] by 1
+                self.scope[variable[2]] [variable[1]] ['age'] [variable[0]] += 1
+                
+                                   
+                
+      
                 
 class GarbageMan:
     
@@ -408,7 +436,9 @@ class GarbageMan:
 
         self.major = []
 
-        self.variableWoman = variableObject.variableHandlerInterface # type: ignore #TODO: Rename it if needed
+        self.variableWoman = variableObject
+        
+        # TODO: Each element will be [variable int, location, scope int or parent int, age]
 
     def CollectGarbage(self) -> None:
         """
@@ -422,6 +452,6 @@ class GarbageMan:
 
         for i in self.minor:
 
-            self.variableWoman.AgePointerInterface(work='increase age', variable=i) # TODO: Create this interface
+            self.variableWoman.AgePointerInterface(work='increase age', variable=i) # TODO: Create this interface <---
             
             # TODO: finish this with some logic about clearing.
