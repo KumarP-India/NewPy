@@ -41,10 +41,11 @@ class Variable:
             # local: inside that code block
             # parent: empty by default; have id of parent codeblocks
 
-        # Each dict having 3 dict:
+        # Each dict having 4 dict:
             # key: To hold unique int ID to user variable name
             # val: To hold unique int ID's value
             # age: To hold unique int ID's age ie. about of minor garbage collection it survived
+            # acessed: To hold no. of unique int ID variable has been acessed for garbage collection
 
         self.scope = {
             0: {
@@ -55,7 +56,8 @@ class Variable:
             1: {
                 'key': {},
                 'val': {},
-                'age': {}
+                'age': {},
+                'acessed': {}
             }
         }
 
@@ -93,19 +95,21 @@ class Variable:
             if isinstance(parent, int) and parent is not None: 
                 raise VariableErrorManager.InvalidParentScope(name, parent)
             
-            if parent not in self.scopeArchive.values() and parent is not None: 
+            if parent is not None and parent not in self.scopeArchive.values(): 
                 raise VariableErrorManager.ParentScopeNotFound(name, parent)
 
             self.scope[self.scopeCounter + 2] = {
                 'enclosed': {
                     'key': {},
                     'val': {}, 
-                    'age': {}
+                    'age': {},
+                    'acessed': {}
                 },
                 'local': {
                     'key': {},
                     'val': {},
-                    'age': {}
+                    'age': {},
+                    'acessed': {}
                 },
                 'parent': parent
             }
@@ -169,8 +173,6 @@ class Variable:
         Returns:
             bool: Its output describes wether the function was able to add it sucessfuly or not.
         """
-
-        newVariable = False # This is used to track if variable is new or not
         
         if scopeName == "1":
             raise VariableErrorManager.SystemVariableAcessed()
@@ -187,6 +189,7 @@ class Variable:
                         self.scope[1] ['key'] [variableName] = len(self.scope[1] ['key'])
                         self.scope[1] ['val'] [len(self.scope[1] ['key']) - 1] = value
                         self.scope[1] ['age'] [len(self.scope[1] ['key']) - 1] = 0
+                        self.scope[1] ['acessed'] [len(self.scope[1] ['key']) - 1] = 0
                         
                         return True
                 
@@ -199,34 +202,27 @@ class Variable:
                 
             if location not in ['enclosed', 'local']: raise VariableErrorManager.InvalidVariableLocation(variableName, scopeName, location, value)
             
-            if scopeName not in self.scopeArchive.values(): 
-                
-                # add the scope and get the output ie. either id of scope or False
-                scopeID = self.ScopeAdder(scopeName)
-                
-                if not scopeID: return False # This is to check if there was an error in adding the scope and it was handled by GarbageHandler
-
-                newVariable = True
+            if scopeName not in self.scopeArchive.keys(): raise VariableErrorManager.ScopeNotFound(variableName, scopeName, value)
                 
             # use same scopeID to get the scope int id from scopeArchive if scope exsits, please
             scopeID = self.scopeArchive[scopeName]
+                            
+            if variableName not in self.scope[scopeID] [location] ['key'].keys():
             
-            if not newVariable:
-                
-                if variableName not in self.scope[scopeID] [location] ['key'].keys():
-                
-                    self.scope[scopeID] [location] ['key'] [variableName] = len(self.scope[scopeID] [location] ['key'])
+                self.scope[scopeID] [location] ['key'] [variableName] = len(self.scope[scopeID] [location] ['key'])
 
-                    self.scope[scopeID] [location] ['value'] [len(self.scope[scopeID] [location] ['key']) - 1] = value
-                    
-                    self.scope[scopeID] [location] ['age'] [len(self.scope[scopeID] [location] ['key']) - 1] = 0
+                self.scope[scopeID] [location] ['value'] [len(self.scope[scopeID] [location] ['key']) - 1] = value
+                
+                self.scope[scopeID] [location] ['age'] [len(self.scope[scopeID] [location] ['key']) - 1] = 0
+                
+                self.scope[scopeID] [location] ['acessed'] [len(self.scope[scopeID] [location] ['key']) - 1] = 0
 
             else:
                         
                 intIDofVariable = self.scope[scopeID] [location] ['key'] [variableName] # Int ID of Variable
 
                 self.scope[scopeID] [location] ['value'] [intIDofVariable] = value
-                
+                    
                 
         except VariableErrorManager.SystemVariableAcessed as e: 
             
@@ -237,6 +233,11 @@ class Variable:
             
             # call recoder funtion
             e.recorder(variableName, scopeName, location, value)
+        
+        except VariableErrorManager.ScopeNotFound as e: 
+            
+            # call recoder funtion
+            e.recorder(variableName, scopeName, value)
             
 
         except Exception as e: 
@@ -384,14 +385,15 @@ class Variable:
     # Interfaces for VariableHandler
     
     def AgePointerInterface(self, work:str, variable: List[Union[int, str]]):
-        # variable = [varID, location, scope id or parent id, age]
-        # check if variable has elements int, str, int, int
+        # variable = [varID, location, scope id or parent id, age, acessed]
+        # check if variable has elements int, str, int, int, int
         if not isinstance(variable, list) or \
             not len(variable) == 4 or \
                 not isinstance(variable[0], int) or \
                     not isinstance(variable[1], str) or \
                         not isinstance(variable[2], int) or \
-                            not isinstance(variable[3], int): return
+                            not isinstance(variable[3], int) or \
+                                not isinstance(variable[4], int): return
                                 
                                 # TODO: Raise error of wrong variable format
                                                        
@@ -406,6 +408,15 @@ class Variable:
                     
                 # I need to increase self.scope[variable[2]] [variable[1]] ['age'] [variable[0]] by 1
                 self.scope[variable[2]] [variable[1]] ['age'] [variable[0]] += 1
+                
+            case 'increase acessed':
+                
+                while self.scope[variable[2]] ['parent']:
+                    
+                    variable[2] = self.scope[variable[2]] ['parent']
+                    
+                # I need to increase self.scope[variable[2]] [variable[1]] ['acessed'] [variable[0]] by 1
+                self.scope[variable[2]] [variable[1]] ['acessed'] [variable[0]] += 1
                 
                                    
                 
@@ -438,7 +449,7 @@ class GarbageMan:
 
         self.variableWoman = variableObject
         
-        # TODO: Each element will be [variable int, location, scope int or parent int, age]
+        # TODO: Each element will be [variable int, location, scope int or parent int, age, acessed]
 
     def CollectGarbage(self) -> None:
         """

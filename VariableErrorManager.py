@@ -169,6 +169,53 @@ class InvalidVariableLocation(Exception):
         
         SystemShutdown()
         
+class ScopeNotFound(Exception):
+    """
+    This Exception is raised when the code tried to be added/updated variable but provided scope is not found
+
+    Args:
+        Exception (type: Not Valid): Not Valid
+    """
+    
+    def __init__(self, variableName:str, scopeName:str, value:Any) -> None:
+        """
+        Refer parent class doc string
+
+        Args:
+            variableName (str): Name of variable that was tried to be added/updated
+            scopeName (str): Name of scope that was tried to be added/updated
+            value (Any): Value of variable given by user
+            
+        Returns: None
+        """
+        
+        message = f"Variable '{variableName}' and/or its value, {value},  was tried to added/updated in scope {scopeName} but scope {scopeName} is not found in scopeArchive."
+        
+        Report(message, 'Critical')
+        
+        super().__init__(message)
+    
+        
+    def recorder(self, variableName:str, scopeName:str, value:Any) -> None:
+        """
+        This function is called when the exception steps are required and is cauhgt by the except block
+
+        Args:
+            variableName (str): Name of variable that was tried to be added/updated
+            scopeName (str): Name of scope that was tried to be added/updated
+            value (Any): Value of variable given by user
+            
+        Returns: Executes system.SystemShutdown()
+        """
+        
+        message = f"Variable '{variableName}' and/or its value, {value},  was tried to added/updated in scope {scopeName} but scope {scopeName} is not found in scopeArchive."
+        
+        Report(message, 'Critical')
+        
+        SystemShutdown()
+ 
+
+
 
 class InvalidParentScope(Exception):
     """
